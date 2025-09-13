@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>h</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖤</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .profile-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid #e0e0e0;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            border: 4px solid #000000;
+            object-fit: cover;
+        }
+
+        .username {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        .discriminator {
+            font-size: 18px;
+            color: #666666;
+            margin-bottom: 20px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .status.online { background: #000000; color: white; }
+        .status.idle { background: #666666; color: white; }
+        .status.dnd { background: #333333; color: white; }
+        .status.offline { background: #999999; color: white; }
+
+        .activities {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .activity {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #000000;
+        }
+
+        .activity-name {
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .activity-details {
+            color: #666666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .links {
+            margin-top: 30px;
+        }
+
+        .link-button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 5px;
+            background: #000000;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .link-button:hover {
+            background: #333333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading {
+            color: #666666;
+            font-style: italic;
+        }
+
+        .error {
+            color: #000000;
+            font-weight: bold;
+        }
+
+        .media-player {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .media-player:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('back.jpg');
+            background-size: 110%;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: -1;
+            pointer-events: none;
+            filter: blur(1px);
+        }
+
+        .background-overlay.active {
+            opacity: 0.8;
+        }
+
+        .background-overlay.active ~ .profile-card {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .background-overlay.active ~ .profile-card .activity {
+            background: rgba(245, 245, 245, 0.7);
+        }
+
+        .background-overlay.active ~ * .media-player {
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .welcome-text {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.8;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay" id="backgroundOverlay"></div>
+    
+    <div id="welcomeOverlay" class="welcome-overlay">
+        <div class="welcome-text">Kliknij, aby wejść...</div>
+    </div>
+
+    <div class="profile-card">
+        <div id="content">
+            <div class="loading">Ładowanie profilu...</div>
+        </div>
+    </div>
+
+    <script>
+        const USER_ID = '1399408256929239080';
+        const API_URL = `https://api.lanyard.rest/v1/users/${USER_ID}`;
+
+        async function fetchUserData() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayProfile(data.data);
+                } else {
+                    showError('Nie udało się pobrać danych profilu');
+                }
+            } catch (error) {
+                showError('Błąd połączenia z API');
+                console.error('Error:', error);
+            }
+        }
+
+        function displayProfile(userData) {
+            const { discord_user, discord_status, activities, spotify } = userData;
+            
+            let content = `
+                <img src="https://cdn.discordapp.com/avatars/${discord_user.id}/${discord_user.avatar}.png?size=256" 
+                     alt="Avatar" class="avatar">
+                
+                <div class="username">${discord_user.username}</div>
+                
+                <div class="status ${discord_status}">${getStatusText(discord_status)}</div>
+            `;
+
+            // Dodaj aktywności
+            if (activities && activities.length > 0) {
+                content += '<h3 style="color: #000000; margin: 20px 0 10px; font-size: 16px;">Obecna aktywność</h3>';
+                content += '<div class="activities">';
+                activities.forEach(activity => {
+                    if (activity.type !== 4) { // Pomijamy custom status
+                        content += `
+                            <div class="activity">
+                                <div class="activity-name">${activity.name}</div>
+                                <div class="activity-details">
+                                    ${activity.details || ''}
+                                    ${activity.state ? ' - ' + activity.state : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                content += '</div>';
+            }
+
+            // Dodaj Spotify jeśli słucha
+            if (spotify) {
+                if (!activities || activities.length === 0) {
+                    content += '<h3 style="color: #000000; margin: 20px 0 10px; font-size: 16px;">Obecna aktywność</h3>';
+                }
+                content += `
+                    <div class="activity">
+                        <div class="activity-name">🎵 Spotify</div>
+                        <div class="activity-details">
+                            ${spotify.song} - ${spotify.artist}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Dodaj linki
+            content += `
+                <div class="links">
+                    <a href="https://discord.gg/Vu5xX5HAuq" class="link-button" target="_blank">
+                        Discord
+                    </a>
+                    <a href="https://github.com/hdmain" class="link-button" target="_blank">
+                        GitHub
+                    </a>
+                    <a href="https://kick.com/hdmain" class="link-button">
+                        Kick
+                    </a>
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = content;
+            
+            // Dodaj media player jako osobny element
+            addMediaPlayer();
+        }
+
+        function addMediaPlayer() {
+            // Usuń istniejący media player jeśli istnieje
+            const existingPlayer = document.getElementById('mediaPlayerContainer');
+            if (existingPlayer) {
+                existingPlayer.remove();
+            }
+
+            // Utwórz nowy media player
+            const mediaPlayerHTML = `
+                <div id="mediaPlayerContainer" class="media-player">
+                    <audio id="audioPlayer" style="display: none;">
+                        <source src="The Pain of Existence.mp3" type="audio/mpeg">
+                        Twoja przeglądarka nie obsługuje odtwarzacza audio.
+                    </audio>
+                    
+                    <div class="song-title">
+                        <span class="music-note">🎵</span>
+                        <span id="songTitle">Ładowanie...</span>
+                    </div>
+                    <div class="song-artist" id="songArtist">MP3 • Ładowanie informacji...</div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span>
+                        <span id="totalTime">0:00</span>
+                    </div>
+                </div>
+            `;
+
+            // Dodaj do body
+            document.body.insertAdjacentHTML('beforeend', mediaPlayerHTML);
+            
+            // Uruchom media player
+            initMediaPlayer();
+            
+            // Dodaj event listenery dla hover efektu
+            setupBackgroundHover();
+        }
+
+        function setupBackgroundHover() {
+            const mediaPlayer = document.getElementById('mediaPlayerContainer');
+            const backgroundOverlay = document.getElementById('backgroundOverlay');
+            const profileCard = document.querySelector('.profile-card');
+            
+            if (mediaPlayer && backgroundOverlay) {
+                mediaPlayer.addEventListener('mouseenter', () => {
+                    backgroundOverlay.classList.add('active');
+                    if (profileCard) {
+                        profileCard.style.background = 'rgba(255, 255, 255, 0.6)';
+                    }
+                    if (mediaPlayer) {
+                        mediaPlayer.style.background = 'rgba(255, 255, 255, 0.7)';
+                    }
+                    // Dodaj przezroczystość do aktywności
+                    const activities = document.querySelectorAll('.activity');
+                    activities.forEach(activity => {
+                        activity.style.background = 'rgba(245, 245, 245, 0.7)';
+                    });
+                });
+                
+                mediaPlayer.addEventListener('mouseleave', () => {
+                    backgroundOverlay.classList.remove('active');
+                    if (profileCard) {
+                        profileCard.style.background = 'rgba(255, 255, 255, 0.95)';
+                    }
+                    if (mediaPlayer) {
+                        mediaPlayer.style.background = 'rgba(255, 255, 255, 0.95)';
+                    }
+                    // Przywróć normalny kolor aktywności
+                    const activities = document.querySelectorAll('.activity');
+                    activities.forEach(activity => {
+                        activity.style.background = '#f5f5f5';
+                    });
+                });
+            }
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'online': 'Online',
+                'idle': 'Zaraz wracam',
+                'dnd': 'Nie przeszkadzać',
+                'offline': 'Offline'
+            };
+            return statusMap[status] || 'Nieznany';
+        }
+
+        function showError(message) {
+            document.getElementById('content').innerHTML = `
+                <div class="error">${message}</div>
+            `;
+        }
+
+        // Animowane title
+        const titleSequence = ['h', 'hd', 'hdm', 'hdma', 'hdmai', 'hdmain'];
+        let titleIndex = 0;
+
+        function animateTitle() {
+            document.title = titleSequence[titleIndex];
+            titleIndex = (titleIndex + 1) % titleSequence.length;
+        }
+
+        // Uruchom animację title co 800ms
+        setInterval(animateTitle, 600);
+
+        // Załaduj dane przy starcie strony
+        fetchUserData();
+
+        // Odświeżaj co 30 sekund
+        setInterval(fetchUserData, 3000000);
+
+        // Animacja postępu utworu
+        function animateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const currentTimeEl = document.getElementById('currentTime');
+            
+            if (!progressFill || !currentTimeEl) return;
+            
+            let progress = 0;
+            let currentSeconds = 0;
+            const totalSeconds = 165; // 2:45
+            
+            const interval = setInterval(() => {
+                progress = (currentSeconds / totalSeconds) * 100;
+                progressFill.style.width = progress + '%';
+                
+                const minutes = Math.floor(currentSeconds / 60);
+                const seconds = currentSeconds % 60;
+                currentTimeEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                currentSeconds++;
+                
+                if (currentSeconds > totalSeconds) {
+                    currentSeconds = 0; // Reset
+                }
+            }, 1000);
+        }
+
+        // Welcome overlay
+        document.getElementById('welcomeOverlay').addEventListener('click', () => {
+            document.getElementById('welcomeOverlay').classList.add('hidden');
+            // Automatycznie uruchom muzykę po kliknięciu
+            setTimeout(() => {
+                const audio = document.getElementById('audioPlayer');
+                if (audio) {
+                    audio.play().catch(e => {
+                        console.log('Nie można odtworzyć audio:', e);
+                    });
+                }
+            }, 500);
+        });
+
+        // Media Player
+        function initMediaPlayer() {
+            const audio = document.getElementById('audioPlayer');
+            const progressFill = document.getElementById('progressFill');
+            const progressBar = document.getElementById('progressBar');
+            const currentTimeEl = document.getElementById('currentTime');
+            const totalTimeEl = document.getElementById('totalTime');
+            const songTitle = document.getElementById('songTitle');
+            const songArtist = document.getElementById('songArtist');
+            
+            if (!audio) return;
+            
+            // Załaduj metadane
+            audio.addEventListener('loadedmetadata', () => {
+                const duration = audio.duration;
+                const minutes = Math.floor(duration / 60);
+                const seconds = Math.floor(duration % 60);
+                totalTimeEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Ustaw tytuł (z nazwy pliku)
+                songTitle.textContent = 'The Pain of Existence';
+                songArtist.textContent = `MP3 • ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            });
+            
+            // Aktualizuj postęp
+            audio.addEventListener('timeupdate', () => {
+                if (audio.duration) {
+                    const progress = (audio.currentTime / audio.duration) * 100;
+                    progressFill.style.width = progress + '%';
+                    
+                    const minutes = Math.floor(audio.currentTime / 60);
+                    const seconds = Math.floor(audio.currentTime % 60);
+                    currentTimeEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+            });
+            
+            // Kliknięcie na pasek postępu
+            progressBar.addEventListener('click', (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const width = rect.width;
+                const clickTime = (clickX / width) * audio.duration;
+                audio.currentTime = clickTime;
+            });
+            
+            // Koniec utworu - restart
+            audio.addEventListener('ended', () => {
+                audio.currentTime = 0;
+                audio.play().catch(e => {
+                    console.log('Nie można ponownie odtworzyć audio:', e);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
